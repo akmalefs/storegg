@@ -23,6 +23,7 @@ func main() {
 	{
 		users.POST("/register", userHandler.RegisterUser)
 		users.POST("/login", userHandler.LoginUser)
+		users.POST("/email_checkers", userHandler.IsEmailAvailable)
 	}
 
 	router.Run()
