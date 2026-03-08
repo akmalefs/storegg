@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"storegg-backend/auth"
 	"storegg-backend/config"
 	"storegg-backend/handler"
 	"storegg-backend/user"
@@ -12,9 +14,11 @@ func main() {
 	config.LoadEnv()
 	db := config.InitDB()
 
+	secret := os.Getenv("JWT_SECRET")
 	userRepository := user.NewRepository(db)
 	userService := user.NewService(userRepository)
-	userHandler := handler.NewUserHandler(userService)
+	authService := auth.NewService(secret)
+	userHandler := handler.NewUserHandler(userService, authService)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")

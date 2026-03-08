@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"storegg-backend/auth"
 	"storegg-backend/helper"
 	"storegg-backend/user"
 
@@ -10,10 +11,11 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegisterUser(c *gin.Context) {
@@ -43,7 +45,14 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	userFormat := user.NewUserResponse(newUser, "qwertylgfdsasfg")
+	token, err := h.authService.GenerateToken(newUser.ID)
+	if err != nil {
+		newResponse := helper.APIResponse("Regist account failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, newResponse)
+		return
+	}
+
+	userFormat := user.NewUserResponse(newUser, token)
 
 	newResponse := helper.APIResponse("Registered account success", http.StatusOK, "success", userFormat)
 	c.JSON(http.StatusOK, newResponse)
@@ -82,7 +91,14 @@ func (h *userHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	userFormat := user.NewUserResponse(loginUser, "qwertylgfdsasfg")
+	token, err := h.authService.GenerateToken(loginUser.ID)
+	if err != nil {
+		newResponse := helper.APIResponse("Login failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, newResponse)
+		return
+	}
+
+	userFormat := user.NewUserResponse(loginUser, token)
 
 	newResponse := helper.APIResponse("Login success", http.StatusOK, "success", userFormat)
 	c.JSON(http.StatusOK, newResponse)
